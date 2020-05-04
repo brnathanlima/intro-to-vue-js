@@ -3,14 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="assets/css/product_style.css">
     <title>Intro to Vue JS</title>
 </head>
 <body>
+    <div class="nav-bar"></div>
+
     <div id="app">
-        <h2>{{ product }}</h2>
-        <h1>{{ description }}</h1>
+        <div class="product">
+            <div class="product-image">
+                <a v-bind:href="link"><img v-bind:src="image" v-bind:alt="alt"></a>
+            </div>
+            <div class="product-info">
+                <h2>{{ product }}</h2>
+                <h1>{{ description }}</h1>
+            </div>
+        </div>
     </div>
+
     <script src="https://unpkg.com/vue"></script>
-    <script src="main.js"></script>
+    <script src="assets/js/main.js"></script>
 </body>
 </html>
