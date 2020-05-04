@@ -15,8 +15,12 @@
                 <a v-bind:href="link"><img v-bind:src="image" v-bind:alt="alt"></a>
             </div>
             <div class="product-info">
+                <p v-if="inventory >= 10">In Stock</p>
+                <p v-else-if="inventory < 10 && inventory > 0">Almost sold out!</p>
+                <p v-else>Sold out</p>
                 <h2>{{ product }}</h2>
                 <h1>{{ description }}</h1>
+                <Button v-show="inventory > 0">Comprar</Button>
             </div>
         </div>
     </div>
