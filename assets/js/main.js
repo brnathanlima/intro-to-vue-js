@@ -2,27 +2,29 @@ var app = new Vue({
     el: '#app',
     data: {
         product: "Socks",
+        brand: "Vue Mastery",
         description: "Lorem ipsum",
-        link: "#",
-        inventory: 10,
-        image: "./assets/images/vmSocks-green-onWhite.jpg",
-        alt: "Picture of a pair of green socks with Vue Mastery logo at the ancle.",
         details: ["80% cotton", "20% polyester", "Gender-neutral"],
+        sizes: ["29-34", "35-39", "40-45"],
         variants: [
             {
                 variantId: 1,
                 variantColor: "green",
                 variantImage: "./assets/images/vmSocks-green-onWhite.jpg",
                 variantAlt: "Picture of a pair of green socks with Vue Mastery logo at the ancle.",
+                variantLink: "#",
+                variantQuantity: 10
             },
             {
                 variantId: 2,
                 variantColor: "blue",
                 variantImage: "./assets/images/vmSocks-blue-onWhite.jpg",
                 variantAlt: "Picture of a pair of blue socks with Vue Mastery logo at the ancle.",
+                variantLink: "#",
+                variantQuantity: 5
             }
         ],
-        sizes: ["29-34", "35-39", "40-45"],
+        selectedVariant: 0,
         cart: 0
     },
     methods: {
@@ -34,13 +36,25 @@ var app = new Vue({
                 --this.cart;                
             }
         },
-        changeProductImage(variantId) {
-            this.variants.forEach(variant => {
-                if (variant.variantId == variantId) {                    
-                    this.image = variant.variantImage;
-                    this.alt = variant.variantAlt;
-                }
-            });
+        changeProduct(variantIndex) {
+            this.selectedVariant = variantIndex;
+        }
+    },
+    computed: {
+        title() {
+            return this.brand + ' ' + this.product;
+        },
+        image() {
+            return this.variants[this.selectedVariant].variantImage;
+        },
+        alt() {
+            return this.variants[this.selectedVariant].variantAlt;
+        },
+        link() {
+            return this.variants[this.selectedVariant].variantLink;
+        },
+        inventory() {
+            return this.variants[this.selectedVariant].variantQuantity;
         }
     }
 });
