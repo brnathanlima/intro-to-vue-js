@@ -20,7 +20,7 @@ Vue.component('product', {
                 <p v-else>Sold out</p>
 
                 <h1>{{ title }}</h1>
-                <productDetails :details="details"></productDetails>
+                <product-details :details="details"></product-details>
 
                 <b><p>Colors</p></b>
                 <div class="color-box"
@@ -35,14 +35,25 @@ Vue.component('product', {
                     <li v-for="size in sizes">{{ size }}</li>
                 </ul>
 
-                <botoesDoCarrinho
+                <botoes-do-carrinho
                     :carrinho="cart"
                     :productInventory="inventory"
                     :productId="this.variants[this.selectedVariant].variantId"
                     @add-to-cart="addToCart"
                     @remove-from-cart="removeFromCart"
-                ></botoesDoCarrinho>
+                ></botoes-do-carrinho>
                 <p>Shipping: {{ shipping }}</p>
+                <div>
+                    <h2>Reviews</h2>
+                    <p v-if="!reviews.length">There are no reviews yet.</p>
+                    <p v-for="review in reviews">
+                        <b>Name: </b>{{ review.name }}<br/>
+                        <b>Recommend? </b>{{ review.recommend }}<br/>
+                        <b>Rating: </b>{{ review.rating }} stars<br/>
+                        <b>Review: </b>{{ review.review }}
+                    </p>
+                </div>
+                <product-review @review-submitted="addReview"></product-review>
             </div>
         </div>
     `,
@@ -71,6 +82,7 @@ Vue.component('product', {
                 }
             ],
             selectedVariant: 0,
+            reviews: []
         }
     },
     methods: {
@@ -81,32 +93,35 @@ Vue.component('product', {
             this.$emit("update-cart", "remove", this.variants[this.selectedVariant].variantId)
         },
         changeProduct(variantIndex) {
-            this.selectedVariant = variantIndex;
+            this.selectedVariant = variantIndex
+        },
+        addReview(productReview) {
+            this.reviews.push(productReview)
         }
     },
     computed: {
         title() {
-            return this.brand + ' ' + this.product;
+            return this.brand + ' ' + this.product
         },
         image() {
-            return this.variants[this.selectedVariant].variantImage;
+            return this.variants[this.selectedVariant].variantImage
         },
         alt() {
-            return this.variants[this.selectedVariant].variantAlt;
+            return this.variants[this.selectedVariant].variantAlt
         },
         link() {
-            return this.variants[this.selectedVariant].variantLink;
+            return this.variants[this.selectedVariant].variantLink
         },
         inventory() {
-            return this.variants[this.selectedVariant].variantQuantity;
+            return this.variants[this.selectedVariant].variantQuantity
         },
         shipping() {
-            return this.premium ? 'Free' : '$2.99';
+            return this.premium ? 'Free' : '$2.99'
         }
     }
-});
+})
 
-Vue.component('productDetails', {
+Vue.component('product-details', {
     props: {
         details: {
             type: Array,
@@ -118,9 +133,9 @@ Vue.component('productDetails', {
             <li v-for="detail in details">{{ detail }}</li>
         </ul>
     `,
-});
+})
 
-Vue.component('botoesDoCarrinho', {
+Vue.component('botoes-do-carrinho', {
     props: {
         carrinho: {
             type: Array,
@@ -139,13 +154,94 @@ Vue.component('botoesDoCarrinho', {
     `,
     methods: {
         addToCart() {
-            this.$emit('add-to-cart');
+            this.$emit('add-to-cart')
         },
         removeFromCart() {
-            this.$emit('remove-from-cart');
+            this.$emit('remove-from-cart')
         },
     }
-});
+})
+
+Vue.component('product-review', {
+    template: `
+        <form class="review-form" @submit.prevent="onSubmit">
+            <h2>Review the product</h2>
+            <p v-if="errors.length">
+                <b>Please correct the following errors:</b>
+                <ul>
+                    <li v-for="error in errors">{{ error }}</li>
+                </ul>
+            </p>
+            <p>
+                <label for="name">Name:</label>
+                <input type="text" id="name" v-model="name">
+            </p>
+            <p>
+                <label for="recommend">Would you recommend this product?</label><br/>
+                <input class="recommendation" type="radio" name="recommend" id="recommend" value="Yes" v-model="recommend">Yes<br/>
+                <input class="recommendation" type="radio" name="recommend" id="recommend" value="No" v-model="recommend">No<br/>
+            </p>
+            <p>
+                <label for="review">Review:</label>
+                <textarea name="review" id="review" cols="30" rows="10" v-model="review"></textarea>
+            </p>
+            <p>
+                <label for="rating">Rating:</label>
+                <select name="rating" id="rating" v-model.number="rating">
+                    <option value="5">5</option>
+                    <option value="4">4</option>
+                    <option value="3">3</option>
+                    <option value="2">2</option>
+                    <option value="1">1</option>
+                </select>
+            </p>
+            <p>
+                <input type="submit" value="Submit">
+            </p>
+        </form>
+    `,
+    data() {
+        return {
+            name: null,
+            recommend: null,
+            review: null,
+            rating: null,
+            errors: []
+        }
+    },
+    methods: {
+        onSubmit() {
+            if (this.name && this.recommend && this.review && this.rating) {
+                let productReview = {
+                    name: this.name,
+                    recommend: this.recommend,
+                    review: this.review,
+                    rating: this.rating
+                }
+                this.$emit("review-submitted", productReview)
+                this.name = null,
+                this.recommend = null,
+                this.review = null,
+                this.rating = null                
+            } else {
+                this.errors = []
+    
+                if (!this.name) {
+                    this.errors.push("Name field is required.")
+                }
+                if (!this.recommend) {
+                    this.errors.push("Recommendation field is required")
+                }
+                if (!this.review) {
+                    this.errors.push("Review field is required")
+                }
+                if (!this.rating) {
+                    this.errors.push("Rating field is required")
+                }
+            }
+        }
+    }
+})
 
 var app = new Vue({
     el: '#app',
@@ -160,11 +256,11 @@ var app = new Vue({
             }
 
             if (action === "remove") {
-                index = this.cart.indexOf(id);
+                index = this.cart.indexOf(id)
                 if (index > -1) {
-                    this.cart.splice(index, 1);
+                    this.cart.splice(index, 1)
                 }
             }
         }
     }
-});
+})
