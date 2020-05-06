@@ -1,4 +1,5 @@
 var eventBus = new Vue()
+
 Vue.component('product', {
     props: {
         premium: {
@@ -39,9 +40,7 @@ Vue.component('product', {
                 <botoes-do-carrinho
                     :carrinho="cart"
                     :productInventory="inventory"
-                    :productId="this.variants[this.selectedVariant].variantId"
-                    @add-to-cart="addToCart"
-                    @remove-from-cart="removeFromCart"
+                    :variantId="this.variants[this.selectedVariant].variantId"
                 ></botoes-do-carrinho>
 
                 <p>Shipping: {{ shipping }}</p>
@@ -79,12 +78,6 @@ Vue.component('product', {
         }
     },
     methods: {
-        addToCart() {
-            this.$emit("update-cart", "add", this.variants[this.selectedVariant].variantId)
-        },
-        removeFromCart() {
-            this.$emit("update-cart", "remove", this.variants[this.selectedVariant].variantId)
-        },
         changeProduct(variantIndex) {
             this.selectedVariant = variantIndex
         },
@@ -139,20 +132,21 @@ Vue.component('botoes-do-carrinho', {
         productInventory: {
             type: Number,
             required: true
+        },
+        variantId: {
+            type: Number,
+            required: true
         }
     },
     template: `
         <div>
-            <Button :class="{ disabledButton: productInventory < 1}" v-on:click="addToCart" :disabled="productInventory < 1">Add to cart</Button>
-            <Button :class="{ disabledButton: this.carrinho.lenght < 1 }" v-on:click="removeFromCart" :disabled="this.carrinho.lenght < 1">Remove from cart</Button>
+            <Button :class="{ disabledButton: productInventory < 1}" v-on:click="updateCart('add', variantId)" :disabled="productInventory < 1">Add to cart</Button>
+            <Button :class="{ disabledButton: this.carrinho.lenght < 1 }" v-on:click="updateCart('remove', variantId)" :disabled="this.carrinho.lenght < 1">Remove from cart</Button>
         </div>
     `,
     methods: {
-        addToCart() {
-            this.$emit('add-to-cart')
-        },
-        removeFromCart() {
-            this.$emit('remove-from-cart')
+        updateCart(acao, variantId) {
+            eventBus.$emit('cart-updated', acao, variantId)
         },
     }
 })
@@ -279,8 +273,8 @@ var app = new Vue({
         premium: true,
         cart: []
     },
-    methods: {
-        updateCart(action, id) {
+    mounted() {
+        eventBus.$on('cart-updated', (action, id) => {
             if (action === "add") {
                 this.cart.push(id)
             }
@@ -291,6 +285,6 @@ var app = new Vue({
                     this.cart.splice(index, 1)
                 }
             }
-        }
+        })
     }
 })
