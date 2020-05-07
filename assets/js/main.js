@@ -1,17 +1,17 @@
-var eventBus = new Vue()
+var eventBus = new Vue();
 
-Vue.component('product', {
-    props: {
-        premium: {
-            type: Boolean,
-            required: true
-        },
-        cart: {
-            type: Array,
-            required: true
-        }
+Vue.component("product", {
+  props: {
+    premium: {
+      type: Boolean,
+      required: true,
     },
-    template: `
+    cart: {
+      type: Array,
+      required: true,
+    },
+  },
+  template: `
         <div class="product">
             <div class="product-image">
                 <a v-bind:href="link"><img v-bind:src="image" v-bind:alt="alt"></a>
@@ -22,6 +22,8 @@ Vue.component('product', {
                 <p v-else>Sold out</p>
 
                 <h1>{{ title }}</h1>
+                
+                <b><p>Details</p></b>
                 <product-details :details="details"></product-details>
 
                 <b><p>Colors</p></b>
@@ -49,110 +51,113 @@ Vue.component('product', {
             </div>
         </div>
     `,
-    data() {
-        return {
-            product: "Socks",
-            brand: "Vue Mastery",
-            description: "Lorem ipsum",
-            details: ["80% cotton", "20% polyester", "Gender-neutral"],
-            sizes: ["29-34", "35-39", "40-45"],
-            variants: [{
-                    variantId: 1,
-                    variantColor: "green",
-                    variantImage: "./assets/images/vmSocks-green-onWhite.jpg",
-                    variantAlt: "Picture of a pair of green socks with Vue Mastery logo at the ancle.",
-                    variantLink: "#",
-                    variantQuantity: 10
-                },
-                {
-                    variantId: 2,
-                    variantColor: "blue",
-                    variantImage: "./assets/images/vmSocks-blue-onWhite.jpg",
-                    variantAlt: "Picture of a pair of blue socks with Vue Mastery logo at the ancle.",
-                    variantLink: "#",
-                    variantQuantity: 5
-                }
-            ],
-            selectedVariant: 0,
-            reviews: []
-        }
+  data() {
+    return {
+      product: "Socks",
+      brand: "Vue Mastery",
+      description: "Lorem ipsum",
+      details: ["80% cotton", "20% polyester", "Gender-neutral"],
+      sizes: ["29-34", "35-39", "40-45"],
+      variants: [
+        {
+          variantId: 1,
+          variantColor: "green",
+          variantImage: "./assets/images/vmSocks-green-onWhite.jpg",
+          variantAlt:
+            "Picture of a pair of green socks with Vue Mastery logo at the ancle.",
+          variantLink: "#",
+          variantQuantity: 10,
+        },
+        {
+          variantId: 2,
+          variantColor: "blue",
+          variantImage: "./assets/images/vmSocks-blue-onWhite.jpg",
+          variantAlt:
+            "Picture of a pair of blue socks with Vue Mastery logo at the ancle.",
+          variantLink: "#",
+          variantQuantity: 5,
+        },
+      ],
+      selectedVariant: 0,
+      reviews: [],
+    };
+  },
+  methods: {
+    changeProduct(variantIndex) {
+      this.selectedVariant = variantIndex;
     },
-    methods: {
-        changeProduct(variantIndex) {
-            this.selectedVariant = variantIndex
-        },
+  },
+  mounted() {
+    eventBus.$on("review-submitted", (productReview) => {
+      this.reviews.push(productReview);
+    });
+  },
+  computed: {
+    title() {
+      return this.brand + " " + this.product;
     },
-    mounted() {
-        eventBus.$on('review-submitted', productReview => {
-            this.reviews.push(productReview)
-        })
+    image() {
+      return this.variants[this.selectedVariant].variantImage;
     },
-    computed: {
-        title() {
-            return this.brand + ' ' + this.product
-        },
-        image() {
-            return this.variants[this.selectedVariant].variantImage
-        },
-        alt() {
-            return this.variants[this.selectedVariant].variantAlt
-        },
-        link() {
-            return this.variants[this.selectedVariant].variantLink
-        },
-        inventory() {
-            return this.variants[this.selectedVariant].variantQuantity
-        },
-        shipping() {
-            return this.premium ? 'Free' : '$2.99'
-        }
-    }
-})
+    alt() {
+      return this.variants[this.selectedVariant].variantAlt;
+    },
+    link() {
+      return this.variants[this.selectedVariant].variantLink;
+    },
+    inventory() {
+      return this.variants[this.selectedVariant].variantQuantity;
+    },
+    shipping() {
+      return this.premium ? "Free" : "$2.99";
+    },
+  },
+});
 
-Vue.component('product-details', {
-    props: {
-        details: {
-            type: Array,
-            required: true
-        }
+Vue.component("product-details", {
+  props: {
+    details: {
+      type: Array,
+      required: true,
     },
-    template: `
+  },
+  template: `
         <ul>
             <li v-for="detail in details">{{ detail }}</li>
         </ul>
     `,
-})
+});
 
-Vue.component('botoes-do-carrinho', {
-    props: {
-        carrinho: {
-            type: Array,
-            required: true
-        },
-        productInventory: {
-            type: Number,
-            required: true
-        },
-        variantId: {
-            type: Number,
-            required: true
-        }
+Vue.component("botoes-do-carrinho", {
+  props: {
+    carrinho: {
+      type: Array,
+      required: true,
     },
-    template: `
+    productInventory: {
+      type: Number,
+      required: true,
+    },
+    variantId: {
+      type: Number,
+      required: true,
+    },
+  },
+  template: `
         <div>
             <Button :class="{ disabledButton: productInventory < 1}" v-on:click="updateCart('add', variantId)" :disabled="productInventory < 1">Add to cart</Button>
             <Button :class="{ disabledButton: this.carrinho.lenght < 1 }" v-on:click="updateCart('remove', variantId)" :disabled="this.carrinho.lenght < 1">Remove from cart</Button>
         </div>
     `,
-    methods: {
-        updateCart(acao, variantId) {
-            eventBus.$emit('cart-updated', acao, variantId)
-        },
-    }
-})
+  methods: {
+    updateCart(acao, variantId) {
+      eventBus.$emit("cart-updated", acao, variantId);
+    },
+  },
+});
 
-Vue.component('product-review', {
-    template: `
+Vue.component("product-review", {
+  template: `
         <form class="review-form" @submit.prevent="onSubmit">
             <h2>Review the product</h2>
             <p v-if="errors.length">
@@ -189,57 +194,57 @@ Vue.component('product-review', {
             </p>
         </form>
     `,
-    data() {
-        return {
-            name: null,
-            recommend: null,
-            review: null,
-            rating: null,
-            errors: []
-        }
-    },
-    methods: {
-        onSubmit() {
-            if (this.name && this.recommend && this.review && this.rating) {
-                let productReview = {
-                    name: this.name,
-                    recommend: this.recommend,
-                    review: this.review,
-                    rating: this.rating
-                }
-                eventBus.$emit("review-submitted", productReview)
-                this.name = null,
-                    this.recommend = null,
-                    this.review = null,
-                    this.rating = null
-            } else {
-                this.errors = []
+  data() {
+    return {
+      name: null,
+      recommend: null,
+      review: null,
+      rating: null,
+      errors: [],
+    };
+  },
+  methods: {
+    onSubmit() {
+      if (this.name && this.recommend && this.review && this.rating) {
+        let productReview = {
+          name: this.name,
+          recommend: this.recommend,
+          review: this.review,
+          rating: this.rating,
+        };
+        eventBus.$emit("review-submitted", productReview);
+        (this.name = null),
+          (this.recommend = null),
+          (this.review = null),
+          (this.rating = null);
+      } else {
+        this.errors = [];
 
-                if (!this.name) {
-                    this.errors.push("Name field is required.")
-                }
-                if (!this.recommend) {
-                    this.errors.push("Recommendation field is required")
-                }
-                if (!this.review) {
-                    this.errors.push("Review field is required")
-                }
-                if (!this.rating) {
-                    this.errors.push("Rating field is required")
-                }
-            }
+        if (!this.name) {
+          this.errors.push("Name field is required.");
         }
-    }
-})
-
-Vue.component('review-tabs', {
-    props: {
-        reviews: {
-            type: Array,
-            required: true
+        if (!this.recommend) {
+          this.errors.push("Recommendation field is required");
         }
+        if (!this.review) {
+          this.errors.push("Review field is required");
+        }
+        if (!this.rating) {
+          this.errors.push("Rating field is required");
+        }
+      }
     },
-    template: `
+  },
+});
+
+Vue.component("review-tabs", {
+  props: {
+    reviews: {
+      type: Array,
+      required: true,
+    },
+  },
+  template: `
         <div>
             <div>
                 <span class="tab" :class="{ activeTab: selectedTab === tab }" v-for="(tab, index) in tabs" :key="index" @click="selectedTab = tab">{{ tab }}</span>
@@ -259,32 +264,32 @@ Vue.component('review-tabs', {
             </div>
         </div>
     `,
-    data() {
-        return {
-            tabs: ['Reviews', 'Make a review'],
-            selectedTab: 'Reviews'
-        }
-    }
-})
+  data() {
+    return {
+      tabs: ["Reviews", "Make a review"],
+      selectedTab: "Reviews",
+    };
+  },
+});
 
 var app = new Vue({
-    el: '#app',
-    data: {
-        premium: true,
-        cart: []
-    },
-    mounted() {
-        eventBus.$on('cart-updated', (action, id) => {
-            if (action === "add") {
-                this.cart.push(id)
-            }
+  el: "#app",
+  data: {
+    premium: true,
+    cart: [],
+  },
+  mounted() {
+    eventBus.$on("cart-updated", (action, id) => {
+      if (action === "add") {
+        this.cart.push(id);
+      }
 
-            if (action === "remove") {
-                index = this.cart.indexOf(id)
-                if (index > -1) {
-                    this.cart.splice(index, 1)
-                }
-            }
-        })
-    }
-})
+      if (action === "remove") {
+        index = this.cart.indexOf(id);
+        if (index > -1) {
+          this.cart.splice(index, 1);
+        }
+      }
+    });
+  },
+});
